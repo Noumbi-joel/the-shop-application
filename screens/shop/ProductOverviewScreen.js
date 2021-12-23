@@ -1,5 +1,12 @@
-import React, { useEffect } from "react";
-import { FlatList, Platform, Button } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  FlatList,
+  Platform,
+  Button,
+  ActivityIndicator,
+  View,
+  Text,
+} from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import ProductItem from "../../components/shop/ProductItem";
 import * as cartActions from "../../store/actions/cart";
@@ -12,10 +19,39 @@ import { fetchProducts } from "../../store/actions/products";
 const ProductOverviewScreen = (props) => {
   const products = useSelector((state) => state.products.availableProducts);
   const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState();
+
+  const loadProducts = useCallback(async () => {
+    console.log("LOAD PRODUCTS");
+    setIsRefreshing(true);
+    setError(null);
+    try {
+      await dispatch(fetchProducts());
+    } catch (err) {
+      setError(err.message);
+    }
+    setIsRefreshing(false);
+  }, [dispatch, setIsLoading, setError]);
 
   useEffect(() => {
-    dispatch(fetchProducts());
-  }, [dispatch]);
+    const willFocusSub = props.navigation.addListener(
+      "willFocus",
+      loadProducts
+    );
+
+    return () => {
+      willFocusSub.remove();
+    };
+  }, [loadProducts]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    loadProducts().then(() => {
+      setIsLoading(false);
+    });
+  }, [dispatch, loadProducts]);
 
   const selectItemHandler = (id, title) => {
     props.navigation.navigate("ProductDetails", {
@@ -24,8 +60,39 @@ const ProductOverviewScreen = (props) => {
     });
   };
 
+  if (error) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <Text>An error occured !</Text>
+        <Button
+          title="Try again"
+          onPress={loadProducts}
+          color={Colors.primary}
+        />
+      </View>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (!isLoading && products.length === 0) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <Text>No products found. Maybe start adding some!</Text>
+      </View>
+    );
+  }
+
   return (
     <FlatList
+      onRefresh={loadProducts}
+      refreshing={isRefreshing}
       data={products}
       keyExtractor={(item) => item.id}
       renderItem={(itemData) => (

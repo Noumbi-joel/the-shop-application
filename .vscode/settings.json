@@ -18,5 +18,8 @@
         "titleBar.inactiveBackground": "#cfae0399",
         "titleBar.inactiveForeground": "#15202b99"
     },
-    "peacock.color": "#cfae03"
+    "peacock.color": "#cfae03",
+    "cSpell.words": [
+        "occured"
+    ]
 }
