@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet } from "react-native";
 
 import { createStore, combineReducers, applyMiddleware } from "redux";
 import { Provider } from "react-redux";
 import ReduxThunk from "redux-thunk";
+import authReducer from "./store/reducers/auth";
 import AppLoading from "expo-app-loading";
 import * as Font from "expo-font";
 
-import ShopNavigator from "./navigation/shopNavigator";
+import NavigationContainer from "./navigation/NavigationContainer";
 
 import productsReducer from "./store/reducers/products";
 import cartReducer from "./store/reducers/cart";
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
   products: productsReducer,
   cart: cartReducer,
   orders: ordersReducer,
+  auth: authReducer,
 });
 
 const store = createStore(rootReducer, applyMiddleware(ReduxThunk));
@@ -47,12 +49,12 @@ export default function App() {
 
   return (
     <Provider store={store}>
-      <ShopNavigator />
+      <NavigationContainer />
     </Provider>
   );
 }
 
-const styles = StyleSheet.create({
+/* const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
@@ -60,3 +62,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
+ */
